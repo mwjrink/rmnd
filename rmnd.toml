@@ -1,0 +1,14 @@
+config_paths = []
+priorities = []
+
+[[reminders]]
+priority = 'Critical'
+author = 'John Doe, johndoe, johndoe@gmail.com'
+text = 'This is a local critical reminder!'
+
+[[reminders]]
+priority = 'Normal'
+author = ''
+text = 'This is a normal local reminder4'
+
+[settings]
