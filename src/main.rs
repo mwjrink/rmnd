@@ -1,18 +1,18 @@
 #![feature(slice_group_by)]
 
 mod reminder;
-mod configFile;
+mod config_file;
 
 use core::panic;
 use std::{ffi::OsString, fs, path::{Path, PathBuf}, env::current_dir};
 
 use clap::{builder::NonEmptyStringValueParser, Arg, ArgAction, ArgMatches, Command};
 use colored::Colorize;
-use configFile::ConfigSum;
+use config_file::ConfigSum;
 use reminder::{LocalReminder, Reminder, Priority, Color};
 use text_io::read;
 
-use crate::configFile::ConfigFile;
+use crate::config_file::ConfigFile;
 
 const CONFIG_DIR: &str = "/Users/maxrink/.config/";
 const CONFIG_NAME: &str = r"rmnd.toml";
@@ -67,32 +67,105 @@ fn cli() -> Command<'static> {
                       .takes_value(false)
                       .help("Add to the global context."),
               )
-              .arg(Arg::new("reminder").action(ArgAction::Set).value_parser(NonEmptyStringValueParser::new()))
+              .arg(
+                  Arg::new("reminder")
+                      .action(ArgAction::Set)
+                      .value_parser(NonEmptyStringValueParser::new())
+              )
               .subcommand(
-               Command::new("reminder")
-               .about("Add a reminder.")
-               .aliases(&["remind", "r"])
-               .arg(Arg::new("priority").short('p').action(ArgAction::Set).required(false))
-               .arg_required_else_help(true)
-               .arg(Arg::new("reminder").required(true).action(ArgAction::Set).value_parser(NonEmptyStringValueParser::new())))
+                  Command::new("reminder")
+                      .about("Add a reminder.")
+                      .aliases(&["remind", "r"])
+                      .arg(
+                          Arg::new("priority")
+                              .short('p')
+                              .action(ArgAction::Set)
+                              .required(false)
+                      )
+                      .arg_required_else_help(true)
+                      .arg(
+                          Arg::new("reminder")
+                              .required(true)
+                              .action(ArgAction::Set)
+                              .value_parser(NonEmptyStringValueParser::new())
+                      )
+              )
               .subcommand(
-                Command::new("priority")
-                .about("Add a priority.")
-                .aliases(&["prio", "p"])
-                .arg_required_else_help(true)
-                .arg(Arg::new("priority").required(true).action(ArgAction::Set).value_parser(NonEmptyStringValueParser::new()))
-                .arg(Arg::new("color").long("--color").short('c').required(false).action(ArgAction::Set).value_parser(NonEmptyStringValueParser::new())))
+                  Command::new("priority")
+                       .about("Add a priority.")
+                       .aliases(&["prio", "p"])
+                       .arg_required_else_help(true)
+                       .arg(
+                           Arg::new("priority")
+                               .required(true)
+                               .action(ArgAction::Set)
+                               .value_parser(NonEmptyStringValueParser::new())
+                       )
+                       .arg(
+                           Arg::new("color")
+                               .long("--color")
+                               .short('c')
+                               .required(false)
+                               .action(ArgAction::Set)
+                               .value_parser(NonEmptyStringValueParser::new())
+                       )
+              )
         )
         // Remind
         .subcommand(
-         Command::new("remind")
-             .alias("r")
-             .about("Add, remove or edit a reminder.")
-             .arg(Arg::new("global").long("--global").short('g').action(ArgAction::SetTrue).takes_value(false).help("Operation prioritizes global over contextual."),)
-             .arg(Arg::new("reminder").action(ArgAction::Set).takes_value(true).help("The reminder to be added."),)
-             .subcommand(Command::new("add").about("Add a reminder.").long_flag("--add").short_flag('a').arg(Arg::new("reminder").action(ArgAction::Set).takes_value(true).help("The reminder to be added."),))
-             .subcommand(Command::new("remove").about("Remove a reminder").long_flag("--remove").short_flag('r').arg(Arg::new("reminder").action(ArgAction::Set).takes_value(true).help("The reminder to be removed, id or name."),))
-             .subcommand(Command::new("edit").about("Edit a reminder.").long_flag("--edit").short_flag('e').arg(Arg::new("reminder").action(ArgAction::Set).takes_value(true).help("The reminder to be modified, id or name."),))
+            Command::new("remind")
+                .alias("r")
+                .about("Add, remove or edit a reminder.")
+                .arg(
+                    Arg::new("global")
+                        .long("--global")
+                        .short('g')
+                        .action(ArgAction::SetTrue)
+                        .takes_value(false)
+                        .help("Operation prioritizes global over contextual."),
+                )
+                .arg(
+                    Arg::new("reminder")
+                        .action(ArgAction::Set)
+                        .takes_value(true)
+                        .help("The reminder to be added."),
+                )
+                .subcommand(
+                    Command::new("add")
+                        .about("Add a reminder.")
+                        .long_flag("--add")
+                        .short_flag('a')
+                        .arg(
+                            Arg::new("reminder")
+                                .action(ArgAction::Set)
+                                .takes_value(true)
+                                .help("The reminder to be added."),
+                        )
+                )
+                .subcommand(
+                    Command::new("remove")
+                        .about("Remove a reminder")
+                        .long_flag("--remove")
+                        .short_flag('r')
+                        .arg(
+                            Arg::new("reminder")
+                                .action(ArgAction::Set)
+                                .takes_value(true)
+                                .help("The reminder to be removed, id or name."),
+                        )
+                )
+                .subcommand(
+                    Command::new("edit")
+                        .about("Edit a reminder.")
+                        .long_flag("--edit")
+                        .short_flag('e')
+                        .arg(
+                            Arg::new("reminder")
+                                .action(ArgAction::Set)
+                                .takes_value(true)
+                                .help("The reminder to be modified, id or name."),
+                        )
+                )
         )
         // Remove UNSTARTED HERE DOWN
         .subcommand(
